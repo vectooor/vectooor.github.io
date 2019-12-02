@@ -1,8 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>Java中Integer类型转String的注意事项</title>
+    <url>/2019/12/02/java-integer-to-string/</url>
+    <content><![CDATA[<p>在Java中，诸多场景都需要将Integer转为String的场景。之前图方便省事，直接 <code>+&quot;&quot;</code> 进行转化。今天特地对Integer转String进行适度的研究。（本文主要测试本地图片的引用方式）</p>
+<a id="more"></a>
+
+<h3 id="””操作"><a href="#””操作" class="headerlink" title="+””操作"></a>+””操作</h3><p>通过 <code>+&quot;&quot;</code> 进行实现，代码如下：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">JVM</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Integer x = <span class="number">1</span>;</span><br><span class="line">        String s = x + <span class="string">""</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>编译后，生成 <code>JVM.class</code> 文件，通过命令 <code>javap -verbose JVM.class</code> 查看，可以看到如下结果：</p>
+<p><img src="/images/integer-to-string-pic1.png" alt=""></p>
+<p>由此可以发现，通过 <code>+</code> 操作符连接一个空字符串的操作的时候，虚拟机实际的操作是新建了一个 <code>StringBuilder</code> 对象执行 <code>append</code> 操作去链接字符串。</p>
+<h3 id="Integer-toString"><a href="#Integer-toString" class="headerlink" title="Integer.toString()"></a>Integer.toString()</h3><p>JDK的的源码如下：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Returns a &#123;<span class="doctag">@code</span> String&#125; object representing the</span></span><br><span class="line"><span class="comment"> * specified integer. The argument is converted to signed decimal</span></span><br><span class="line"><span class="comment"> * representation and returned as a string, exactly as if the</span></span><br><span class="line"><span class="comment"> * argument and radix 10 were given as arguments to the &#123;<span class="doctag">@link</span></span></span><br><span class="line"><span class="comment"> * #toString(int, int)&#125; method.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span>   i   an integer to be converted.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return</span>  a string representation of the argument in base&amp;nbsp;10.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">toString</span><span class="params">(<span class="keyword">int</span> i)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (i == Integer.MIN_VALUE)</span><br><span class="line">        <span class="keyword">return</span> <span class="string">"-2147483648"</span>;</span><br><span class="line">    <span class="keyword">int</span> size = (i &lt; <span class="number">0</span>) ? stringSize(-i) + <span class="number">1</span> : stringSize(i);</span><br><span class="line">    <span class="keyword">char</span>[] buf = <span class="keyword">new</span> <span class="keyword">char</span>[size];</span><br><span class="line">    getChars(i, size, buf);</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> String(buf, <span class="keyword">true</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，针对Integer类型，专门实现了转String的方法。</p>
+<h3 id="String-valueOf-int-i"><a href="#String-valueOf-int-i" class="headerlink" title="String.valueOf(int i)"></a>String.valueOf(int i)</h3><p>JDK的源码如下：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Returns the string representation of the &#123;<span class="doctag">@code</span> int&#125; argument.</span></span><br><span class="line"><span class="comment"> * &lt;p&gt;</span></span><br><span class="line"><span class="comment"> * The representation is exactly the one returned by the</span></span><br><span class="line"><span class="comment"> * &#123;<span class="doctag">@code</span> Integer.toString&#125; method of one argument.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span>   i   an &#123;<span class="doctag">@code</span> int&#125;.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return</span>  a string representation of the &#123;<span class="doctag">@code</span> int&#125; argument.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@see</span>     java.lang.Integer#toString(int, int)</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">valueOf</span><span class="params">(<span class="keyword">int</span> i)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> Integer.toString(i);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>String.valueOf</code> 还是调用了 <code>Integer.toString()</code> 。</p>
+<h3 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h3><p>鉴于此，今后 <code>+&quot;&quot;</code> 的方案不建议使用。建议使用 <code>Integer.toString()</code> 或者 <code>String.valueOf()</code>。以上同样适用于Long、Double等类型的转换。</p>
+]]></content>
+      <categories>
+        <category>技术</category>
+      </categories>
+      <tags>
+        <tag>Java</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Tomcat返回头无OK字符的解决方案</title>
-    <url>/2019/11/30/tomcat-response-without-OK-character/</url>
+    <url>/2019/12/02/tomcat-response-without-OK-character/</url>
     <content><![CDATA[<p>公司业务架构升级，原来由PHP对外提供HTTP服务改为由SpringBoot（版本为2.1.3）提供，该版本默认的HTTP容器为Tomcat9，导致前端的返回头与原PHP返回的头不一致，从而引发前端一些老的接入终端出现问题。前端接入终端较多，切老旧设备的程序修改麻烦，所以必然需要后端来兼容前端。</p>
 <a id="more"></a>
 <h3 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h3><p>PHP的返回头如下：</p>
@@ -14,9 +42,14 @@
 <blockquote>
 <p>Set this attribute to true if you wish to have a reason phrase in the response. The default value is false.<br>Note: This option is deprecated and will be removed in Tomcat 9. The reason phrase will not be sent.</p>
 </blockquote>
-<p>由此，在Tomcat9中，该功能已经彻底无法实现了。所以只能通过降级到Tomcat8解决该问题。降级到Tomcat8以后实测解决该问题。</p>
-<p>需要注意的是，Tomcat有两种运行方式，一种是启动Tomcat，然后war包往webapps目录下扔即可。这种方式启动的直接在<code>$TOMCAT_HOME/conf/server.xml</code>中直接修改配置即可。<br>另一种是嵌入式的，比如在SpringBoot中是通过嵌入式方式启动的。对于这一种方式，要配置Tomcat的参数，需要继承类<code>TomcatServletWebServerFactory</code>重写其中一个方法。(待补充，现在忘了)</p>
+<p>由此，在Tomcat9中，该功能已经彻底无法实现了。所以只能通过降级到Tomcat8解决该问题。本人实测，降级到Tomcat8以后并设置<code>sendReasonPhrase=true</code>后该问题解决。Tomcat9尝试过添加该参数，无效。</p>
+<p>需要注意的是，Tomcat有两种运行方式，一种是启动Tomcat，然后war包往webapps目录下扔即可。这种方式启动的直接在<code>$TOMCAT_HOME/conf/server.xml</code>中直接修改配置即可。<br>另一种是嵌入式的，比如在SpringBoot中是通过嵌入式方式启动的。对于这一种方式，要配置Tomcat的参数，需要实现接口<code>WebServerFactoryCustomizer</code>重写<code>customize</code>方法，具体代码如下：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">@Component</span><br><span class="line">public class PortalTomcatWebServerCustomizer implements WebServerFactoryCustomizer&lt;TomcatServletWebServerFactory&gt; &#123;</span><br><span class="line">    @Override</span><br><span class="line">    public void customize(TomcatServletWebServerFactory factory) &#123;</span><br><span class="line">        factory.addConnectorCustomizers(connector -&gt; connector.setAttribute(&quot;sendReasonPhrase&quot;, &quot;true&quot;));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>以上。</p>
 ]]></content>
+      <categories>
+        <category>技术</category>
+      </categories>
       <tags>
         <tag>Java</tag>
         <tag>Tomcat</tag>

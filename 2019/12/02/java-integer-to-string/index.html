@@ -47,18 +47,20 @@
   };
 </script>
 
-  <meta name="description" content="公司的一个项目，有诸多场景需要用到延时任务，例如：  创建的优惠活动在指定时间结束 创建的订单如果五分钟之后未支付关闭 …  同时，需要对延时任务进行持久化。即，系统在意外宕机或者服务更新的情况下，延时任务依然可以重新装载。所以，这里关于非持久化实现方案（如使用Java的DelayQueue，Netty的时间轮片）不做考虑。本笔记主要从理论上论述两种实现方案。">
-<meta name="keywords" content="Java,RabbitMQ">
+  <meta name="description" content="在Java中，诸多场景都需要将Integer转为String的场景。之前图方便省事，直接 +&amp;quot;&amp;quot; 进行转化。今天特地对Integer转String进行适度的研究。（本文主要测试本地图片的引用方式）">
+<meta name="keywords" content="Java">
 <meta property="og:type" content="article">
-<meta property="og:title" content="基于RabbitMQ的延时任务解决方案">
-<meta property="og:url" content="http:&#x2F;&#x2F;yoursite.com&#x2F;2019&#x2F;11&#x2F;26&#x2F;implement-delayed-task-by-rabbitmq&#x2F;index.html">
+<meta property="og:title" content="Java中Integer类型转String的注意事项">
+<meta property="og:url" content="http:&#x2F;&#x2F;yoursite.com&#x2F;2019&#x2F;12&#x2F;02&#x2F;java-integer-to-string&#x2F;index.html">
 <meta property="og:site_name" content="Vectooor">
-<meta property="og:description" content="公司的一个项目，有诸多场景需要用到延时任务，例如：  创建的优惠活动在指定时间结束 创建的订单如果五分钟之后未支付关闭 …  同时，需要对延时任务进行持久化。即，系统在意外宕机或者服务更新的情况下，延时任务依然可以重新装载。所以，这里关于非持久化实现方案（如使用Java的DelayQueue，Netty的时间轮片）不做考虑。本笔记主要从理论上论述两种实现方案。">
+<meta property="og:description" content="在Java中，诸多场景都需要将Integer转为String的场景。之前图方便省事，直接 +&amp;quot;&amp;quot; 进行转化。今天特地对Integer转String进行适度的研究。（本文主要测试本地图片的引用方式）">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-11-30T13:33:34.882Z">
+<meta property="og:image" content="http:&#x2F;&#x2F;yoursite.com&#x2F;images&#x2F;integer-to-string-pic1.png">
+<meta property="og:updated_time" content="2019-12-02T06:29:14.719Z">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http:&#x2F;&#x2F;yoursite.com&#x2F;images&#x2F;integer-to-string-pic1.png">
 
-<link rel="canonical" href="http://yoursite.com/2019/11/26/implement-delayed-task-by-rabbitmq/">
+<link rel="canonical" href="http://yoursite.com/2019/12/02/java-integer-to-string/">
 
 
 <script id="page-configurations">
@@ -72,7 +74,7 @@
   };
 </script>
 
-  <title>基于RabbitMQ的延时任务解决方案 | Vectooor</title>
+  <title>Java中Integer类型转String的注意事项 | Vectooor</title>
   
 
 
@@ -212,7 +214,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-Hans">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/11/26/implement-delayed-task-by-rabbitmq/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/12/02/java-integer-to-string/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/profile-photo.jpg">
@@ -225,7 +227,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          基于RabbitMQ的延时任务解决方案
+          Java中Integer类型转String的注意事项
         </h1>
 
         <div class="post-meta">
@@ -234,16 +236,10 @@
                 <i class="fa fa-calendar-o"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
+              
 
-              <time title="创建时间：2019-11-26 23:10:44" itemprop="dateCreated datePublished" datetime="2019-11-26T23:10:44+08:00">2019-11-26</time>
+              <time title="创建时间：2019-12-02 13:50:13 / 修改时间：14:29:14" itemprop="dateCreated datePublished" datetime="2019-12-02T13:50:13+08:00">2019-12-02</time>
             </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2019-11-30 21:33:34" itemprop="dateModified" datetime="2019-11-30T21:33:34+08:00">2019-11-30</time>
-              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="fa fa-folder-o"></i>
@@ -265,8 +261,8 @@
       </span>
       <span class="post-meta-item-text">评论：</span>
     
-    <a title="valine" href="/2019/11/26/implement-delayed-task-by-rabbitmq/#comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/2019/11/26/implement-delayed-task-by-rabbitmq/" itemprop="commentCount"></span>
+    <a title="valine" href="/2019/12/02/java-integer-to-string/#comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2019/12/02/java-integer-to-string/" itemprop="commentCount"></span>
     </a>
   </span>
   
@@ -275,7 +271,7 @@
               <span class="post-meta-item-icon">
                 <i class="fa fa-file-word-o"></i>
               </span>
-              <span>1.4k</span>
+              <span>1.6k</span>
             </span>
 
         </div>
@@ -287,27 +283,23 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>公司的一个项目，有诸多场景需要用到延时任务，例如：</p>
-<ul>
-<li>创建的优惠活动在指定时间结束</li>
-<li>创建的订单如果五分钟之后未支付关闭</li>
-<li>…</li>
-</ul>
-<p>同时，需要对延时任务进行持久化。即，系统在意外宕机或者服务更新的情况下，延时任务依然可以重新装载。所以，这里关于非持久化实现方案（如使用Java的DelayQueue，Netty的时间轮片）不做考虑。本笔记主要从理论上论述两种实现方案。</p>
+        <p>在Java中，诸多场景都需要将Integer转为String的场景。之前图方便省事，直接 <code>+&quot;&quot;</code> 进行转化。今天特地对Integer转String进行适度的研究。（本文主要测试本地图片的引用方式）</p>
 <a id="more"></a>
 
+<h3 id="””操作"><a href="#””操作" class="headerlink" title="+””操作"></a>+””操作</h3><p>通过 <code>+&quot;&quot;</code> 进行实现，代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">JVM</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Integer x = <span class="number">1</span>;</span><br><span class="line">        String s = x + <span class="string">""</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>编译后，生成 <code>JVM.class</code> 文件，通过命令 <code>javap -verbose JVM.class</code> 查看，可以看到如下结果：</p>
+<p><img src="/images/integer-to-string-pic1.png" alt=""></p>
+<p>由此可以发现，通过 <code>+</code> 操作符连接一个空字符串的操作的时候，虚拟机实际的操作是新建了一个 <code>StringBuilder</code> 对象执行 <code>append</code> 操作去链接字符串。</p>
+<h3 id="Integer-toString"><a href="#Integer-toString" class="headerlink" title="Integer.toString()"></a>Integer.toString()</h3><p>JDK的的源码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Returns a &#123;<span class="doctag">@code</span> String&#125; object representing the</span></span><br><span class="line"><span class="comment"> * specified integer. The argument is converted to signed decimal</span></span><br><span class="line"><span class="comment"> * representation and returned as a string, exactly as if the</span></span><br><span class="line"><span class="comment"> * argument and radix 10 were given as arguments to the &#123;<span class="doctag">@link</span></span></span><br><span class="line"><span class="comment"> * #toString(int, int)&#125; method.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span>   i   an integer to be converted.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return</span>  a string representation of the argument in base&amp;nbsp;10.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">toString</span><span class="params">(<span class="keyword">int</span> i)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (i == Integer.MIN_VALUE)</span><br><span class="line">        <span class="keyword">return</span> <span class="string">"-2147483648"</span>;</span><br><span class="line">    <span class="keyword">int</span> size = (i &lt; <span class="number">0</span>) ? stringSize(-i) + <span class="number">1</span> : stringSize(i);</span><br><span class="line">    <span class="keyword">char</span>[] buf = <span class="keyword">new</span> <span class="keyword">char</span>[size];</span><br><span class="line">    getChars(i, size, buf);</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> String(buf, <span class="keyword">true</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h3 id="基于Redis的实现方案"><a href="#基于Redis的实现方案" class="headerlink" title="基于Redis的实现方案"></a>基于Redis的实现方案</h3><p>基于Redis的实现原理：利用Redis的Sorted Set数据结构，key作为任务类型，score作为要执行任务的时间，member作为消息体（如JSON格式的字符串），存储到Redis中。然后，开启一个定时任务，定时的去轮询score在区间[0, current]的元素（通过zrangebyscore实现），然后将查询到的任务交给新的线程去完成。需要注意的是：</p>
-<ul>
-<li>多个实例同时轮询，会出现一个任务多个地方消费的情况。所以，建议在执行任务前，通过zrem删除消息，保证只有一个实例执行任务。如果执行失败，还可以将消息再次写回到队列。当然，多实例的情况下也可以使用分布式锁实现消息的单一消费。</li>
-<li>轮询引发的问题：假设5秒钟轮询一次且数据量足够大，而轮询一次执行完的时间远远大5秒，那么，就会造成在第一次轮询未完成的情况下，第二次轮询已经开始了。极端情况下，轮询任务一直叠加，最后会造成无限递归的情况，引发内存泄漏，系统崩溃。</li>
-<li>Redis的消息无法进行监控。</li>
-</ul>
-<p>鉴于以上原因，Redis的方案不建议。</p>
-<h3 id="基于RabbitMQ的实现方案"><a href="#基于RabbitMQ的实现方案" class="headerlink" title="基于RabbitMQ的实现方案"></a>基于RabbitMQ的实现方案</h3><p>网上很多文章说通过RabbitMQ的死信队列实现任务延时。这个死信队列有一个问题：队列的排序是根据消息进入的顺序排序。也就是说，假设第一个消息一小时后执行，第二个任务半小时后执行，但是因为第一个消息在前面，它会堵住所有后面的消息，直到它被消费掉。因此，死信队列的实现方案不予考虑。</p>
-<p>最后选择的方案是，通过RabbitMQ的延时任务插件<code>abbitmq-delayed-message-exchange</code>实现。插件地址：<a href="https://github.com/rabbitmq/rabbitmq-delayed-message-exchange" target="_blank" rel="noopener">https://github.com/rabbitmq/rabbitmq-delayed-message-exchange</a>。</p>
-<p>延时任务支持的最大时长为<code>2^32-1=4294967295</code>毫秒（RabbitMQ是Erlang实现，Erlang的整形数据最大值就是2^32-1），约为50天左右。即，超过50天的延时任务，RabbitMQ可能无法做到。在Java中，<code>delayedTime</code>类型是int，Java中int的最大值为<code>2^31-1=2147483647</code>毫秒，约为25天左右。<br>对此，在Java中的处理该问题的方案如下：一般而言，数据库中存在一个结束时间（例如活动的结束时间），当延时的时间超过<code>Integer.MAX_VALUE</code>时，就设置延时时间为<code>Integer.MAX_VALUE</code>，在消费者接受到任务后，继续和结束时间进行对比，如果仍然超过int的最大值，则将消息原样放入到队列，延时时间为int的最大值，如此循环，直到延时时间小于int的最大值。</p>
-<p>RabbitMQ中延时任务无法删除。只能通过消费者去对逻辑状态进行判断，从而丢弃掉无效的延时任务。例如，原延时任务定在15分钟后关闭订单，但是15分钟内用户支付完成，订单成功，则在消费者接受到任务是，对订单状态进行判断，如果成功，则丢弃该消息。</p>
+<p>可以看到，针对Integer类型，专门实现了转String的方法。</p>
+<h3 id="String-valueOf-int-i"><a href="#String-valueOf-int-i" class="headerlink" title="String.valueOf(int i)"></a>String.valueOf(int i)</h3><p>JDK的源码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Returns the string representation of the &#123;<span class="doctag">@code</span> int&#125; argument.</span></span><br><span class="line"><span class="comment"> * &lt;p&gt;</span></span><br><span class="line"><span class="comment"> * The representation is exactly the one returned by the</span></span><br><span class="line"><span class="comment"> * &#123;<span class="doctag">@code</span> Integer.toString&#125; method of one argument.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span>   i   an &#123;<span class="doctag">@code</span> int&#125;.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return</span>  a string representation of the &#123;<span class="doctag">@code</span> int&#125; argument.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@see</span>     java.lang.Integer#toString(int, int)</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">valueOf</span><span class="params">(<span class="keyword">int</span> i)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> Integer.toString(i);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>String.valueOf</code> 还是调用了 <code>Integer.toString()</code> 。</p>
+<h3 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h3><p>鉴于此，今后 <code>+&quot;&quot;</code> 的方案不建议使用。建议使用 <code>Integer.toString()</code> 或者 <code>String.valueOf()</code>。以上同样适用于Long、Double等类型的转换。</p>
 
     </div>
 
@@ -318,7 +310,6 @@
       <footer class="post-footer">
           <div class="post-tags">
               <a href="/tags/Java/" rel="tag"># Java</a>
-              <a href="/tags/RabbitMQ/" rel="tag"># RabbitMQ</a>
           </div>
 
         
@@ -326,11 +317,11 @@
 
         
     <div class="post-nav">
-      <div class="post-nav-item"></div>
       <div class="post-nav-item">
-    <a href="/2019/12/02/tomcat-response-without-OK-character/" rel="next" title="Tomcat返回头无OK字符的解决方案">
-      Tomcat返回头无OK字符的解决方案 <i class="fa fa-chevron-right"></i>
+    <a href="/2019/12/02/tomcat-response-without-OK-character/" rel="prev" title="Tomcat返回头无OK字符的解决方案">
+      <i class="fa fa-chevron-left"></i> Tomcat返回头无OK字符的解决方案
     </a></div>
+      <div class="post-nav-item"></div>
     </div>
       </footer>
     
@@ -369,7 +360,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#基于Redis的实现方案"><span class="nav-text">基于Redis的实现方案</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#基于RabbitMQ的实现方案"><span class="nav-text">基于RabbitMQ的实现方案</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#””操作"><span class="nav-text">+””操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Integer-toString"><span class="nav-text">Integer.toString()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#String-valueOf-int-i"><span class="nav-text">String.valueOf(int i)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#结论"><span class="nav-text">结论</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 

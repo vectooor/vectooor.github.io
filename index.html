@@ -13,7 +13,7 @@
 
 <link rel="stylesheet" href="/css/main.css">
 
-
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Microsoft YaHei:300,300italic,400,400italic,700,700italic|consolas:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
 <link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
 
 
@@ -208,7 +208,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-Hans">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/11/30/tomcat-response-without-OK-character/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/12/02/java-integer-to-string/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/profile-photo.jpg">
@@ -222,7 +222,7 @@
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
           
-            <a href="/2019/11/30/tomcat-response-without-OK-character/" class="post-title-link" itemprop="url">Tomcat返回头无OK字符的解决方案</a>
+            <a href="/2019/12/02/java-integer-to-string/" class="post-title-link" itemprop="url">Java中Integer类型转String的注意事项</a>
         </h1>
 
         <div class="post-meta">
@@ -231,29 +231,139 @@
                 <i class="fa fa-calendar-o"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
+              
 
-              <time title="创建时间：2019-11-30 21:36:43" itemprop="dateCreated datePublished" datetime="2019-11-30T21:36:43+08:00">2019-11-30</time>
+              <time title="创建时间：2019-12-02 13:50:13 / 修改时间：14:29:14" itemprop="dateCreated datePublished" datetime="2019-12-02T13:50:13+08:00">2019-12-02</time>
             </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2019-12-01 00:28:40" itemprop="dateModified" datetime="2019-12-01T00:28:40+08:00">2019-12-01</time>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
               </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index">
+                    <span itemprop="name">技术</span>
+                  </a>
+                </span>
+            </span>
 
           
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">评论：</span>
+    
+    <a title="valine" href="/2019/12/02/java-integer-to-string/#comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2019/12/02/java-integer-to-string/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
             <span class="post-meta-item" title="本文字数">
               <span class="post-meta-item-icon">
                 <i class="fa fa-file-word-o"></i>
               </span>
-              <span>1.1k</span>
+              <span>1.6k</span>
             </span>
-            <span class="post-meta-item" title="阅读时长">
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>在Java中，诸多场景都需要将Integer转为String的场景。之前图方便省事，直接 <code>+&quot;&quot;</code> 进行转化。今天特地对Integer转String进行适度的研究。（本文主要测试本地图片的引用方式）</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2019/12/02/java-integer-to-string/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/12/02/tomcat-response-without-OK-character/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/profile-photo.jpg">
+      <meta itemprop="name" content="勤恳的小码农">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Vectooor">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/2019/12/02/tomcat-response-without-OK-character/" class="post-title-link" itemprop="url">Tomcat返回头无OK字符的解决方案</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
               <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
+                <i class="fa fa-calendar-o"></i>
               </span>
-              <span>1 分钟</span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2019-12-02 10:36:43 / 修改时间：10:42:34" itemprop="dateCreated datePublished" datetime="2019-12-02T10:36:43+08:00">2019-12-02</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index">
+                    <span itemprop="name">技术</span>
+                  </a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">评论：</span>
+    
+    <a title="valine" href="/2019/12/02/tomcat-response-without-OK-character/#comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2019/12/02/tomcat-response-without-OK-character/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+              <span>1.5k</span>
             </span>
 
         </div>
@@ -268,7 +378,7 @@
           <p>公司业务架构升级，原来由PHP对外提供HTTP服务改为由SpringBoot（版本为2.1.3）提供，该版本默认的HTTP容器为Tomcat9，导致前端的返回头与原PHP返回的头不一致，从而引发前端一些老的接入终端出现问题。前端接入终端较多，切老旧设备的程序修改麻烦，所以必然需要后端来兼容前端。</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/2019/11/30/tomcat-response-without-OK-character/#more" rel="contents">
+              <a class="btn" href="/2019/12/02/tomcat-response-without-OK-character/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -338,17 +448,25 @@
             </span>
 
           
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">评论：</span>
+    
+    <a title="valine" href="/2019/11/26/implement-delayed-task-by-rabbitmq/#comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2019/11/26/implement-delayed-task-by-rabbitmq/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
             <span class="post-meta-item" title="本文字数">
               <span class="post-meta-item-icon">
                 <i class="fa fa-file-word-o"></i>
               </span>
               <span>1.4k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-              <span>1 分钟</span>
             </span>
 
         </div>
@@ -436,7 +554,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">2</span>
+          <span class="site-state-item-count">3</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -458,6 +576,11 @@
     <a href="/atom.xml" rel="alternate">
       <i class="fa fa-rss"></i>RSS
     </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/vectooor" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;vectooor" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
   </div>
 
 
@@ -534,6 +657,33 @@
   
 
   
+
+
+<script>
+NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+  var GUEST = ['nick', 'mail', 'link'];
+  var guest = 'nick,mail,link';
+  guest = guest.split(',').filter(item => {
+    return GUEST.includes(item);
+  });
+  new Valine({
+    el: '#comments',
+    verify: false,
+    notify: false,
+    appId: '9a9v7zu2yyqTWSjtdBY5WHS4-gzGzoHsz',
+    appKey: 'rka4jpeukne9S0n6xra3OYua',
+    placeholder: "Just go go",
+    avatar: 'mm',
+    meta: guest,
+    pageSize: '10' || 10,
+    visitor: false,
+    lang: '' || 'zh-cn',
+    path: location.pathname,
+    recordIP: true,
+    serverURLs: ''
+  });
+}, window.Valine);
+</script>
 
 </body>
 </html>
