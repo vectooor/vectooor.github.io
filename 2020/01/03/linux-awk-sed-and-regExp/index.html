@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.0.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <link rel="alternate" href="/atom.xml" title="Vectooor" type="application/atom+xml">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Microsoft YaHei:300,300italic,400,400italic,700,700italic|consolas:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('http://yoursite.com').hostname,
+    root: '/',
+    scheme: 'Gemini',
+    version: '7.5.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="Linux提供了awk和sed两个强大的命令行文本处理工具，在对大型日志文件分析时特别有用。对文本的处理结合正则表达式可以高效的获取自己想要的日志信息。本文只是对awk、sed和正则表达式在笔者使用过程中遇到的一些比较常用的功能进行记录，更详细的使用方法可以去相应的官方网站查看。">
+<meta name="keywords" content="Linux,正则表达式">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux下的awk、sed命令及正则表达式">
+<meta property="og:url" content="http:&#x2F;&#x2F;yoursite.com&#x2F;2020&#x2F;01&#x2F;03&#x2F;linux-awk-sed-and-regExp&#x2F;index.html">
+<meta property="og:site_name" content="Vectooor">
+<meta property="og:description" content="Linux提供了awk和sed两个强大的命令行文本处理工具，在对大型日志文件分析时特别有用。对文本的处理结合正则表达式可以高效的获取自己想要的日志信息。本文只是对awk、sed和正则表达式在笔者使用过程中遇到的一些比较常用的功能进行记录，更详细的使用方法可以去相应的官方网站查看。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2020-01-03T07:26:55.871Z">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2020/01/03/linux-awk-sed-and-regExp/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>Linux下的awk、sed命令及正则表达式 | Vectooor</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Vectooor</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">talk is cheap, show me the code</p>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/01/03/linux-awk-sed-and-regExp/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/profile-photo.jpg">
+      <meta itemprop="name" content="勤恳的小码农">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Vectooor">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Linux下的awk、sed命令及正则表达式
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2020-01-03 09:36:43 / 修改时间：15:26:55" itemprop="dateCreated datePublished" datetime="2020-01-03T09:36:43+08:00">2020-01-03</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index">
+                    <span itemprop="name">技术</span>
+                  </a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">评论：</span>
+    
+    <a title="valine" href="/2020/01/03/linux-awk-sed-and-regExp/#comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/01/03/linux-awk-sed-and-regExp/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+              <span>3.9k</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>Linux提供了awk和sed两个强大的命令行文本处理工具，在对大型日志文件分析时特别有用。对文本的处理结合正则表达式可以高效的获取自己想要的日志信息。本文只是对awk、sed和正则表达式在笔者使用过程中遇到的一些比较常用的功能进行记录，更详细的使用方法可以去相应的官方网站查看。</p>
+<a id="more"></a>
+
+<h3 id="1-awk简单介绍"><a href="#1-awk简单介绍" class="headerlink" title="1 awk简单介绍"></a>1 awk简单介绍</h3><p>根据维基百科的<a href="https://zh.wikipedia.org/wiki/AWK" target="_blank" rel="noopener">介绍</a>：</p>
+<blockquote>
+<p>AWK是一种优良的文本处理工具，Linux及Unix环境中现有的功能最强大的数据处理引擎之一。这种编程及数据操作语言的最大功能取决于一个人所拥有的知识。AWK提供了极其强大的功能：可以进行正则表达式的匹配，样式装入、流控制、数学运算符、进程控制语句甚至于内置的变量和函数。</p>
+</blockquote>
+<p>几乎所有的Linux都自带<code>awk</code>命令。它依次处理文件的每一行，并读取里面的每一个字段。对于日志文件那样的每行格式相同的文本文件，<code>awk</code>可能是最方便的工具。</p>
+<h4 id="1-1-基本用法"><a href="#1-1-基本用法" class="headerlink" title="1.1 基本用法"></a>1.1 基本用法</h4><p>基本语法命令如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"># 格式</span><br><span class="line">$ awk actions fileName</span><br><span class="line"></span><br><span class="line"># 示例</span><br><span class="line">$ awk &apos;&#123;print $0&#125;&apos; test.log</span><br></pre></td></tr></table></figure>
+
+<p>上面的代码中，<code>test.log</code>就是要处理的文本文件。<code>actions</code>即动作，写在一对单引号内，引号内的命令一般需要一对大括号括起来。<code>print</code>是打印命令。</p>
+<p>根据以上的基础语法，我们进行一次实践。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 这里顺便学习<span class="built_in">echo</span>命令如何输出单引号，目前了解到的方式是通过双引号把单引号引起来，然后将单引号两侧的字符串通过单引号引起来，放在一起即可。</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">echo</span> <span class="string">'I'</span><span class="string">"'"</span><span class="string">'m learning awk'</span> | awk <span class="string">'&#123;print $0&#125;'</span></span></span><br><span class="line">I'm learning awk</span><br><span class="line"></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">echo</span> <span class="string">'I'</span><span class="string">"'"</span><span class="string">'m learning awk'</span> | awk <span class="string">'&#123;print $1&#125;'</span></span></span><br><span class="line">I'm</span><br><span class="line"></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">echo</span> <span class="string">'I'</span><span class="string">"'"</span><span class="string">'m learning awk'</span> | awk <span class="string">'&#123;print $2&#125;'</span></span></span><br><span class="line">learning</span><br></pre></td></tr></table></figure>
+
+<p>以上，我们可以看到，<code>$0</code>代表的是整行，<code>$1</code>默认为第一列，<code>$2</code>、<code>$3</code>以此类推。默认的分隔符是空格或制表符，即<code>\t</code>的转义字符。</p>
+<p>为便于加深理解，我们以<code>/etc/passwd</code>文件（该文件是通过冒号分开的有规律的文件）为例，进行如下操作：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> cat /etc/passwd</span></span><br><span class="line">root:x:0:0:root:/root:/bin/bash</span><br><span class="line">bin:x:1:1:bin:/bin:/sbin/nologin</span><br><span class="line">daemon:x:2:2:daemon:/sbin:/sbin/nologin</span><br><span class="line"></span><br><span class="line"><span class="meta">$</span><span class="bash"> cat /etc/passwd | awk -F<span class="string">':'</span> <span class="string">'&#123;print $1&#125;'</span></span></span><br><span class="line">root</span><br><span class="line">bin</span><br><span class="line">daemon</span><br></pre></td></tr></table></figure>
+
+<p>我们通过<code>-F</code>指定行的分隔符，然后输出每行的第一列。</p>
+<h4 id="1-2-内置变量"><a href="#1-2-内置变量" class="headerlink" title="1.2 内置变量"></a>1.2 内置变量</h4><p>内置变量我们可以通过<code>man awk</code>命令，在结果中搜索<code>Built-in Variables</code>可以查询到所有的内置变量，这里对一些常用的做简单学习。</p>
+<table>
+<thead>
+<tr>
+<th>变量名</th>
+<th>man手册解释</th>
+<th>个人理解</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>NF</td>
+<td>The number of fields in the current input record.</td>
+<td>当前行通过分隔符切割后一共有多少个字段。$NF就代表最后一个字段，相应的$(NF-1)就是倒数第二个字段。</td>
+</tr>
+<tr>
+<td>NR</td>
+<td>The total number of input records seen so far.</td>
+<td>表示当前处理的是第几行。</td>
+</tr>
+<tr>
+<td>FILENAME</td>
+<td>The name of the current input file.  If no files are specified on the command line, the value of FILENAME is “-”.  However, FILENAME is undefined inside the BEGIN block (unless set by getline).</td>
+<td>当前处理的文件的文件名。</td>
+</tr>
+<tr>
+<td>FS</td>
+<td>The input field separator, a space by default.</td>
+<td>字段分隔符，默认是空格和制表符。</td>
+</tr>
+<tr>
+<td>RS</td>
+<td>The input record separator, by default a newline.</td>
+<td>行的分隔符，默认是换行符。</td>
+</tr>
+</tbody></table>
+<p>根据以上的内置变量，对其中的部分进行实践。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 输出第一列和倒数第二列，中间用字符-隔开，双引号中的字符原样输出，如果是逗号，默认为空格</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> cat /etc/passwd | awk -F<span class="string">':'</span> <span class="string">'&#123;print $1"-"$(NF-1)&#125;'</span></span></span><br><span class="line">root-/root</span><br><span class="line">bin-/bin</span><br><span class="line">daemon-/sbin</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 同上，输出行号</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> cat /etc/passwd | awk -F<span class="string">':'</span> <span class="string">'&#123;print NR ")", $1, $(NF-1)&#125;'</span></span></span><br><span class="line">1) root /root</span><br><span class="line">2) bin /bin</span><br><span class="line">3) daemon /sbin</span><br></pre></td></tr></table></figure>
+
+<h4 id="1-3-常用操作"><a href="#1-3-常用操作" class="headerlink" title="1.3 常用操作"></a>1.3 常用操作</h4><p>准备文件awk.txt，文件内容如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">1 12</span><br><span class="line">2 32</span><br><span class="line">2 32</span><br><span class="line">5 12</span><br><span class="line">5 12</span><br><span class="line">6 165</span><br><span class="line">6 165</span><br></pre></td></tr></table></figure>
+
+<p>我们分别对其进行求和和去重操作。</p>
+<h5 id="1-3-1-求和"><a href="#1-3-1-求和" class="headerlink" title="1.3.1 求和"></a>1.3.1 求和</h5><p>我们对第二列的值进行求和操作：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> awk <span class="string">'BEGIN &#123;sum = 0&#125; &#123;sum += $2&#125; END &#123;print sum&#125;'</span> awk.txt </span></span><br><span class="line">430</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 同样的，可以进行求平均值操作，除以总行数即可</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> awk <span class="string">'BEGIN &#123;sum = 0&#125; &#123;sum += $2&#125; END &#123;print sum/NR&#125;'</span> awk.txt</span></span><br><span class="line">61.4286</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 格式化输出，同C语言的格式化输出</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> awk <span class="string">'BEGIN &#123;sum = 0&#125; &#123;sum += $2&#125; END &#123;printf("%.2f\n"), sum/NR&#125;'</span> awk.txt</span></span><br><span class="line">61.43</span><br></pre></td></tr></table></figure>
+
+<h5 id="1-3-2-去重"><a href="#1-3-2-去重" class="headerlink" title="1.3.2 去重"></a>1.3.2 去重</h5><p>去重有两种方案可以实现。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 先使用sort进行排序，然后进行uniq操作</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> sort awk.txt | uniq</span></span><br><span class="line">1 12</span><br><span class="line">2 32</span><br><span class="line">5 12</span><br><span class="line">6 165</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 使用awk</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> awk <span class="string">'!a[$0]++'</span> awk.txt</span></span><br><span class="line">1 12</span><br><span class="line">2 32</span><br><span class="line">5 12</span><br><span class="line">6 165</span><br></pre></td></tr></table></figure>
+
+<p>关于<code>!a[$0]++</code>的个人理解：</p>
+<ul>
+<li><code>awk</code>数组的下标可以为字符串（经证实，可以。如果不可以，<code>a[$0]</code>也可以理解为下标=<code>hash($0)</code>）和数字。</li>
+<li>如果action为空，默认<code>action={print $0}</code>，上面的去重命令行等价于<code>awk &#39;!a[$0]++ {print $0}&#39; awk.txt</code>。</li>
+<li><code>++</code>操作是先使用值，然后自增。</li>
+</ul>
+<p>由以上三点，可以得出以下执行逻辑：</p>
+<blockquote>
+<p>读取<code>a[$0]</code>的值，默认为0，进行非操作<code>!a[$0]</code>得到值为1，所以输出<code>$0</code>然后值自增为1，下一次执行的时候，如果<code>a[$0] != 0</code>，进行非操作，得到<code>0</code>，则该行不输出。</p>
+</blockquote>
+<h5 id="1-3-2-条件筛选"><a href="#1-3-2-条件筛选" class="headerlink" title="1.3.2 条件筛选"></a>1.3.2 条件筛选</h5><p>如果我们切割出来的列，包含了一些杂质，比如，本来该列均为数字，结果文件内容该位置出现的字母，那么，我们可以进一步进行条件筛选。以如下文本为例：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">1 12</span><br><span class="line">2 32</span><br><span class="line">2 32</span><br><span class="line">5 12</span><br><span class="line">5 12</span><br><span class="line">6 165</span><br><span class="line">6 165</span><br><span class="line">h hello</span><br></pre></td></tr></table></figure>
+
+<p>我们的需求是筛选出第二列的所有数字，实现方式如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> awk <span class="string">'&#123;tmp = $2&#125; &#123;if (tmp ~ /[0-9]+/) &#123;print $2&#125;&#125;'</span> awk.txt</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 或者如下</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> awk <span class="string">'/[0-9]+/ &#123;print&#125;'</span> awk.txt </span></span><br><span class="line">1 12</span><br><span class="line">2 32</span><br><span class="line">2 32</span><br><span class="line">5 12</span><br><span class="line">5 12</span><br><span class="line">6 165</span><br><span class="line">6 165</span><br></pre></td></tr></table></figure>
+
+<p><code>~</code>是<code>awk</code>中的正则表达式的匹配，相应的还有<code>!~</code>操作符。关于正则表达式，后面会花时间进行初步学习。</p>
+<h3 id="2-sed实践"><a href="#2-sed实践" class="headerlink" title="2 sed实践"></a>2 sed实践</h3><p>对<code>sed</code>不着过多笔墨，这里只对实际场景中用到的进行简单记录。更深层次的学习后续用到的时候在这里继续补充。目前<code>sed</code>在实战中的使用场景是，在<code>shell</code>启动脚本中，读取配置文件的参数，然后通过命令启动应用。有如下配置文件<code>key=value</code>格式，我们需要通过key读取到value。</p>
+<p>配置文件sed.txt</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">server.name=api-service</span><br><span class="line">server.port=8080</span><br><span class="line">server.path=/test</span><br></pre></td></tr></table></figure>
+
+<p>我们需要分别读到服务名称、端口等信息，具体操作如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 读取服务名称</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> sed <span class="string">'/server.name/!d;s/.*=//'</span> sed.txt | tr -d <span class="string">'\r'</span></span></span><br><span class="line">api-service</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 读取启动端口</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> sed <span class="string">'/server.port/!d;s/.*=//'</span> sed.txt | tr -d <span class="string">'\r'</span></span></span><br><span class="line">8080</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 依次类推</span></span><br></pre></td></tr></table></figure>
+
+<p>对如上命令的理解和解释，在命令中以分号为界，分为两个部分：</p>
+<ul>
+<li><p>第一部分：<code>/server.name/!d</code></p>
+<p><code>/server.name/</code>是一个正则表达式，表示包含字符串<code>server.name</code>的行，<code>d</code>是<code>sed</code>的一个删除命令操作，<code>!d</code>就是删除的反向操作，即删除所有不包含<code>server.name</code>字符串的行。执行<code>sed &#39;/server.name/!d&#39; sed.txt</code>可以得到<code>server.name=api-service</code>。</p>
+</li>
+<li><p>第二部分：<code>s/.*=//</code></p>
+<p><code>s</code>在<code>sed</code>命令中的的含义为替换，后接的<code>/.*=/</code>是一个正则表达式，匹配的字符串为任何以<code>=</code>结尾的字符串，显然，这里匹配到的是<code>server.name=</code>。后面再接一个<code>/</code>，两个<code>/</code>之间的字符串为空，即将匹配到的字符串置为空，那么得到的结果就是<code>api-service</code>。</p>
+</li>
+</ul>
+<p><code>tr</code>命令不在该文讨论范畴，可以自行查阅相关资料。这里的<code>tr -d &#39;\r&#39;</code>意思是删除末尾的换行符。</p>
+<h3 id="3-正则表达式"><a href="#3-正则表达式" class="headerlink" title="3 正则表达式"></a>3 正则表达式</h3><p>该文已经较长，接下来单独开一篇学习正则表达式。</p>
+<p>以上。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Linux/" rel="tag"># Linux</a>
+              <a href="/tags/%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/" rel="tag"># 正则表达式</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/12/02/java-integer-to-string/" rel="prev" title="Java中Integer类型转String的注意事项">
+      <i class="fa fa-chevron-left"></i> Java中Integer类型转String的注意事项
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="comments"></div>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-awk简单介绍"><span class="nav-text">1 awk简单介绍</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-1-基本用法"><span class="nav-text">1.1 基本用法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#1-2-内置变量"><span class="nav-text">1.2 内置变量</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#1-3-常用操作"><span class="nav-text">1.3 常用操作</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#1-3-1-求和"><span class="nav-text">1.3.1 求和</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#1-3-2-去重"><span class="nav-text">1.3.2 去重</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#1-3-2-条件筛选"><span class="nav-text">1.3.2 条件筛选</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-sed实践"><span class="nav-text">2 sed实践</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-正则表达式"><span class="nav-text">3 正则表达式</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="勤恳的小码农"
+      src="/images/profile-photo.jpg">
+  <p class="site-author-name" itemprop="name">勤恳的小码农</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">4</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/vectooor" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;vectooor" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">勤恳的小码农</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  
+  <script color='0,0,255' opacity='0.5' zIndex='-1' count='99' src="/lib/canvas-nest/canvas-nest.min.js"></script>
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script>
+<script src="/js/schemes/pisces.js"></script>
+<script src="/js/next-boot.js"></script>
+
+
+
+  
+
+
+
+
+  <script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+  var GUEST = ['nick', 'mail', 'link'];
+  var guest = 'nick,mail,link';
+  guest = guest.split(',').filter(item => {
+    return GUEST.includes(item);
+  });
+  new Valine({
+    el: '#comments',
+    verify: false,
+    notify: false,
+    appId: '9a9v7zu2yyqTWSjtdBY5WHS4-gzGzoHsz',
+    appKey: 'rka4jpeukne9S0n6xra3OYua',
+    placeholder: "Just go go",
+    avatar: 'mm',
+    meta: guest,
+    pageSize: '10' || 10,
+    visitor: false,
+    lang: '' || 'zh-cn',
+    path: location.pathname,
+    recordIP: true,
+    serverURLs: ''
+  });
+}, window.Valine);
+</script>
+
+</body>
+</html>

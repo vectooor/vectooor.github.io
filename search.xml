@@ -1,6 +1,122 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>Linux下的awk、sed命令及正则表达式</title>
+    <url>/2020/01/03/linux-awk-sed-and-regExp/</url>
+    <content><![CDATA[<p>Linux提供了awk和sed两个强大的命令行文本处理工具，在对大型日志文件分析时特别有用。对文本的处理结合正则表达式可以高效的获取自己想要的日志信息。本文只是对awk、sed和正则表达式在笔者使用过程中遇到的一些比较常用的功能进行记录，更详细的使用方法可以去相应的官方网站查看。</p>
+<a id="more"></a>
+
+<h3 id="1-awk简单介绍"><a href="#1-awk简单介绍" class="headerlink" title="1 awk简单介绍"></a>1 awk简单介绍</h3><p>根据维基百科的<a href="https://zh.wikipedia.org/wiki/AWK" target="_blank" rel="noopener">介绍</a>：</p>
+<blockquote>
+<p>AWK是一种优良的文本处理工具，Linux及Unix环境中现有的功能最强大的数据处理引擎之一。这种编程及数据操作语言的最大功能取决于一个人所拥有的知识。AWK提供了极其强大的功能：可以进行正则表达式的匹配，样式装入、流控制、数学运算符、进程控制语句甚至于内置的变量和函数。</p>
+</blockquote>
+<p>几乎所有的Linux都自带<code>awk</code>命令。它依次处理文件的每一行，并读取里面的每一个字段。对于日志文件那样的每行格式相同的文本文件，<code>awk</code>可能是最方便的工具。</p>
+<h4 id="1-1-基本用法"><a href="#1-1-基本用法" class="headerlink" title="1.1 基本用法"></a>1.1 基本用法</h4><p>基本语法命令如下：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"># 格式</span><br><span class="line">$ awk actions fileName</span><br><span class="line"></span><br><span class="line"># 示例</span><br><span class="line">$ awk &apos;&#123;print $0&#125;&apos; test.log</span><br></pre></td></tr></table></figure>
+
+<p>上面的代码中，<code>test.log</code>就是要处理的文本文件。<code>actions</code>即动作，写在一对单引号内，引号内的命令一般需要一对大括号括起来。<code>print</code>是打印命令。</p>
+<p>根据以上的基础语法，我们进行一次实践。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 这里顺便学习<span class="built_in">echo</span>命令如何输出单引号，目前了解到的方式是通过双引号把单引号引起来，然后将单引号两侧的字符串通过单引号引起来，放在一起即可。</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">echo</span> <span class="string">'I'</span><span class="string">"'"</span><span class="string">'m learning awk'</span> | awk <span class="string">'&#123;print $0&#125;'</span></span></span><br><span class="line">I'm learning awk</span><br><span class="line"></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">echo</span> <span class="string">'I'</span><span class="string">"'"</span><span class="string">'m learning awk'</span> | awk <span class="string">'&#123;print $1&#125;'</span></span></span><br><span class="line">I'm</span><br><span class="line"></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">echo</span> <span class="string">'I'</span><span class="string">"'"</span><span class="string">'m learning awk'</span> | awk <span class="string">'&#123;print $2&#125;'</span></span></span><br><span class="line">learning</span><br></pre></td></tr></table></figure>
+
+<p>以上，我们可以看到，<code>$0</code>代表的是整行，<code>$1</code>默认为第一列，<code>$2</code>、<code>$3</code>以此类推。默认的分隔符是空格或制表符，即<code>\t</code>的转义字符。</p>
+<p>为便于加深理解，我们以<code>/etc/passwd</code>文件（该文件是通过冒号分开的有规律的文件）为例，进行如下操作：</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> cat /etc/passwd</span></span><br><span class="line">root:x:0:0:root:/root:/bin/bash</span><br><span class="line">bin:x:1:1:bin:/bin:/sbin/nologin</span><br><span class="line">daemon:x:2:2:daemon:/sbin:/sbin/nologin</span><br><span class="line"></span><br><span class="line"><span class="meta">$</span><span class="bash"> cat /etc/passwd | awk -F<span class="string">':'</span> <span class="string">'&#123;print $1&#125;'</span></span></span><br><span class="line">root</span><br><span class="line">bin</span><br><span class="line">daemon</span><br></pre></td></tr></table></figure>
+
+<p>我们通过<code>-F</code>指定行的分隔符，然后输出每行的第一列。</p>
+<h4 id="1-2-内置变量"><a href="#1-2-内置变量" class="headerlink" title="1.2 内置变量"></a>1.2 内置变量</h4><p>内置变量我们可以通过<code>man awk</code>命令，在结果中搜索<code>Built-in Variables</code>可以查询到所有的内置变量，这里对一些常用的做简单学习。</p>
+<table>
+<thead>
+<tr>
+<th>变量名</th>
+<th>man手册解释</th>
+<th>个人理解</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>NF</td>
+<td>The number of fields in the current input record.</td>
+<td>当前行通过分隔符切割后一共有多少个字段。$NF就代表最后一个字段，相应的$(NF-1)就是倒数第二个字段。</td>
+</tr>
+<tr>
+<td>NR</td>
+<td>The total number of input records seen so far.</td>
+<td>表示当前处理的是第几行。</td>
+</tr>
+<tr>
+<td>FILENAME</td>
+<td>The name of the current input file.  If no files are specified on the command line, the value of FILENAME is “-”.  However, FILENAME is undefined inside the BEGIN block (unless set by getline).</td>
+<td>当前处理的文件的文件名。</td>
+</tr>
+<tr>
+<td>FS</td>
+<td>The input field separator, a space by default.</td>
+<td>字段分隔符，默认是空格和制表符。</td>
+</tr>
+<tr>
+<td>RS</td>
+<td>The input record separator, by default a newline.</td>
+<td>行的分隔符，默认是换行符。</td>
+</tr>
+</tbody></table>
+<p>根据以上的内置变量，对其中的部分进行实践。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 输出第一列和倒数第二列，中间用字符-隔开，双引号中的字符原样输出，如果是逗号，默认为空格</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> cat /etc/passwd | awk -F<span class="string">':'</span> <span class="string">'&#123;print $1"-"$(NF-1)&#125;'</span></span></span><br><span class="line">root-/root</span><br><span class="line">bin-/bin</span><br><span class="line">daemon-/sbin</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 同上，输出行号</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> cat /etc/passwd | awk -F<span class="string">':'</span> <span class="string">'&#123;print NR ")", $1, $(NF-1)&#125;'</span></span></span><br><span class="line">1) root /root</span><br><span class="line">2) bin /bin</span><br><span class="line">3) daemon /sbin</span><br></pre></td></tr></table></figure>
+
+<h4 id="1-3-常用操作"><a href="#1-3-常用操作" class="headerlink" title="1.3 常用操作"></a>1.3 常用操作</h4><p>准备文件awk.txt，文件内容如下：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">1 12</span><br><span class="line">2 32</span><br><span class="line">2 32</span><br><span class="line">5 12</span><br><span class="line">5 12</span><br><span class="line">6 165</span><br><span class="line">6 165</span><br></pre></td></tr></table></figure>
+
+<p>我们分别对其进行求和和去重操作。</p>
+<h5 id="1-3-1-求和"><a href="#1-3-1-求和" class="headerlink" title="1.3.1 求和"></a>1.3.1 求和</h5><p>我们对第二列的值进行求和操作：</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> awk <span class="string">'BEGIN &#123;sum = 0&#125; &#123;sum += $2&#125; END &#123;print sum&#125;'</span> awk.txt </span></span><br><span class="line">430</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 同样的，可以进行求平均值操作，除以总行数即可</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> awk <span class="string">'BEGIN &#123;sum = 0&#125; &#123;sum += $2&#125; END &#123;print sum/NR&#125;'</span> awk.txt</span></span><br><span class="line">61.4286</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 格式化输出，同C语言的格式化输出</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> awk <span class="string">'BEGIN &#123;sum = 0&#125; &#123;sum += $2&#125; END &#123;printf("%.2f\n"), sum/NR&#125;'</span> awk.txt</span></span><br><span class="line">61.43</span><br></pre></td></tr></table></figure>
+
+<h5 id="1-3-2-去重"><a href="#1-3-2-去重" class="headerlink" title="1.3.2 去重"></a>1.3.2 去重</h5><p>去重有两种方案可以实现。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 先使用sort进行排序，然后进行uniq操作</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> sort awk.txt | uniq</span></span><br><span class="line">1 12</span><br><span class="line">2 32</span><br><span class="line">5 12</span><br><span class="line">6 165</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 使用awk</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> awk <span class="string">'!a[$0]++'</span> awk.txt</span></span><br><span class="line">1 12</span><br><span class="line">2 32</span><br><span class="line">5 12</span><br><span class="line">6 165</span><br></pre></td></tr></table></figure>
+
+<p>关于<code>!a[$0]++</code>的个人理解：</p>
+<ul>
+<li><code>awk</code>数组的下标可以为字符串（经证实，可以。如果不可以，<code>a[$0]</code>也可以理解为下标=<code>hash($0)</code>）和数字。</li>
+<li>如果action为空，默认<code>action={print $0}</code>，上面的去重命令行等价于<code>awk &#39;!a[$0]++ {print $0}&#39; awk.txt</code>。</li>
+<li><code>++</code>操作是先使用值，然后自增。</li>
+</ul>
+<p>由以上三点，可以得出以下执行逻辑：</p>
+<blockquote>
+<p>读取<code>a[$0]</code>的值，默认为0，进行非操作<code>!a[$0]</code>得到值为1，所以输出<code>$0</code>然后值自增为1，下一次执行的时候，如果<code>a[$0] != 0</code>，进行非操作，得到<code>0</code>，则该行不输出。</p>
+</blockquote>
+<h5 id="1-3-2-条件筛选"><a href="#1-3-2-条件筛选" class="headerlink" title="1.3.2 条件筛选"></a>1.3.2 条件筛选</h5><p>如果我们切割出来的列，包含了一些杂质，比如，本来该列均为数字，结果文件内容该位置出现的字母，那么，我们可以进一步进行条件筛选。以如下文本为例：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">1 12</span><br><span class="line">2 32</span><br><span class="line">2 32</span><br><span class="line">5 12</span><br><span class="line">5 12</span><br><span class="line">6 165</span><br><span class="line">6 165</span><br><span class="line">h hello</span><br></pre></td></tr></table></figure>
+
+<p>我们的需求是筛选出第二列的所有数字，实现方式如下：</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> awk <span class="string">'&#123;tmp = $2&#125; &#123;if (tmp ~ /[0-9]+/) &#123;print $2&#125;&#125;'</span> awk.txt</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 或者如下</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> awk <span class="string">'/[0-9]+/ &#123;print&#125;'</span> awk.txt </span></span><br><span class="line">1 12</span><br><span class="line">2 32</span><br><span class="line">2 32</span><br><span class="line">5 12</span><br><span class="line">5 12</span><br><span class="line">6 165</span><br><span class="line">6 165</span><br></pre></td></tr></table></figure>
+
+<p><code>~</code>是<code>awk</code>中的正则表达式的匹配，相应的还有<code>!~</code>操作符。关于正则表达式，后面会花时间进行初步学习。</p>
+<h3 id="2-sed实践"><a href="#2-sed实践" class="headerlink" title="2 sed实践"></a>2 sed实践</h3><p>对<code>sed</code>不着过多笔墨，这里只对实际场景中用到的进行简单记录。更深层次的学习后续用到的时候在这里继续补充。目前<code>sed</code>在实战中的使用场景是，在<code>shell</code>启动脚本中，读取配置文件的参数，然后通过命令启动应用。有如下配置文件<code>key=value</code>格式，我们需要通过key读取到value。</p>
+<p>配置文件sed.txt</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">server.name=api-service</span><br><span class="line">server.port=8080</span><br><span class="line">server.path=/test</span><br></pre></td></tr></table></figure>
+
+<p>我们需要分别读到服务名称、端口等信息，具体操作如下：</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 读取服务名称</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> sed <span class="string">'/server.name/!d;s/.*=//'</span> sed.txt | tr -d <span class="string">'\r'</span></span></span><br><span class="line">api-service</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 读取启动端口</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> sed <span class="string">'/server.port/!d;s/.*=//'</span> sed.txt | tr -d <span class="string">'\r'</span></span></span><br><span class="line">8080</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 依次类推</span></span><br></pre></td></tr></table></figure>
+
+<p>对如上命令的理解和解释，在命令中以分号为界，分为两个部分：</p>
+<ul>
+<li><p>第一部分：<code>/server.name/!d</code></p>
+<p><code>/server.name/</code>是一个正则表达式，表示包含字符串<code>server.name</code>的行，<code>d</code>是<code>sed</code>的一个删除命令操作，<code>!d</code>就是删除的反向操作，即删除所有不包含<code>server.name</code>字符串的行。执行<code>sed &#39;/server.name/!d&#39; sed.txt</code>可以得到<code>server.name=api-service</code>。</p>
+</li>
+<li><p>第二部分：<code>s/.*=//</code></p>
+<p><code>s</code>在<code>sed</code>命令中的的含义为替换，后接的<code>/.*=/</code>是一个正则表达式，匹配的字符串为任何以<code>=</code>结尾的字符串，显然，这里匹配到的是<code>server.name=</code>。后面再接一个<code>/</code>，两个<code>/</code>之间的字符串为空，即将匹配到的字符串置为空，那么得到的结果就是<code>api-service</code>。</p>
+</li>
+</ul>
+<p><code>tr</code>命令不在该文讨论范畴，可以自行查阅相关资料。这里的<code>tr -d &#39;\r&#39;</code>意思是删除末尾的换行符。</p>
+<h3 id="3-正则表达式"><a href="#3-正则表达式" class="headerlink" title="3 正则表达式"></a>3 正则表达式</h3><p>该文已经较长，接下来单独开一篇学习正则表达式。</p>
+<p>以上。</p>
+]]></content>
+      <categories>
+        <category>技术</category>
+      </categories>
+      <tags>
+        <tag>Linux</tag>
+        <tag>正则表达式</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Java中Integer类型转String的注意事项</title>
     <url>/2019/12/02/java-integer-to-string/</url>
     <content><![CDATA[<p>在Java中，诸多场景都需要将Integer转为String的场景。之前图方便省事，直接 <code>+&quot;&quot;</code> 进行转化。今天特地对Integer转String进行适度的研究。（本文主要测试本地图片的引用方式）</p>
