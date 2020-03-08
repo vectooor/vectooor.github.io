@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.0.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <link rel="alternate" href="/atom.xml" title="Vectooor" type="application/atom+xml">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Microsoft YaHei:300,300italic,400,400italic,700,700italic|consolas:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('http://yoursite.com').hostname,
+    root: '/',
+    scheme: 'Gemini',
+    version: '7.5.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="MyBatis是在Java项目开发中，操作数据库环节时使用频率较高的ORM框架。疫情期间，闲来无事，就看了下其源码，探寻其底层实现，然后自己尝试实现一个简化版的MyBatis，以便更深入的学习和掌握。">
+<meta name="keywords" content="Java,MyBatis">
+<meta property="og:type" content="article">
+<meta property="og:title" content="从零开始手写一个MyBatis框架">
+<meta property="og:url" content="http:&#x2F;&#x2F;yoursite.com&#x2F;2020&#x2F;03&#x2F;08&#x2F;mini-mybatis&#x2F;index.html">
+<meta property="og:site_name" content="Vectooor">
+<meta property="og:description" content="MyBatis是在Java项目开发中，操作数据库环节时使用频率较高的ORM框架。疫情期间，闲来无事，就看了下其源码，探寻其底层实现，然后自己尝试实现一个简化版的MyBatis，以便更深入的学习和掌握。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http:&#x2F;&#x2F;yoursite.com&#x2F;images&#x2F;MyBatis.png">
+<meta property="og:image" content="http:&#x2F;&#x2F;yoursite.com&#x2F;images&#x2F;mybatis-project.jpg">
+<meta property="og:updated_time" content="2020-03-08T09:57:46.142Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http:&#x2F;&#x2F;yoursite.com&#x2F;images&#x2F;MyBatis.png">
+
+<link rel="canonical" href="http://yoursite.com/2020/03/08/mini-mybatis/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>从零开始手写一个MyBatis框架 | Vectooor</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Vectooor</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">talk is cheap, show me the code</p>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/08/mini-mybatis/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/profile-photo.jpg">
+      <meta itemprop="name" content="勤恳的小码农">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Vectooor">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          从零开始手写一个MyBatis框架
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2020-03-08 12:36:43 / 修改时间：17:57:46" itemprop="dateCreated datePublished" datetime="2020-03-08T12:36:43+08:00">2020-03-08</time>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">评论：</span>
+    
+    <a title="valine" href="/2020/03/08/mini-mybatis/#comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/03/08/mini-mybatis/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+              <span>6.1k</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>MyBatis是在Java项目开发中，操作数据库环节时使用频率较高的ORM框架。疫情期间，闲来无事，就看了下其源码，探寻其底层实现，然后自己尝试实现一个简化版的MyBatis，以便更深入的学习和掌握。</p>
+<a id="more"></a>
+
+<h3 id="1-预备知识"><a href="#1-预备知识" class="headerlink" title="1 预备知识"></a>1 预备知识</h3><ul>
+<li>a. 掌握JDBC操作数据库的实现</li>
+<li>b. 掌握Java动态代理的实现</li>
+<li>c. XML文件的解析</li>
+<li>d. MyBatis的基本使用</li>
+</ul>
+<p>本质上，MyBatis就是通过动态代理，对JDBC进行封装。所以，以上前两点是必须要掌握的。第三点，主要是解析MyBatis的配置文件和Mapper文件。第四点，我们的架构是模仿MyBatis，所以必须知道如何使用原生的MyBatis。本文最后的测试代码就是标准的MyBatis调用流程。</p>
+<h3 id="2-架构梳理"><a href="#2-架构梳理" class="headerlink" title="2 架构梳理"></a>2 架构梳理</h3><p>MyBatis框架的流程如下图所示。</p>
+<p><img src="/images/MyBatis.png" alt=""></p>
+<p>我们对上图从上而下进行说明。</p>
+<h4 id="2-1-Configuration"><a href="#2-1-Configuration" class="headerlink" title="2.1 Configuration"></a>2.1 Configuration</h4><p>MyBatis的配置文件分为两种。</p>
+<ul>
+<li>第一种是数据库的配置信息，比如数据库链接地址、账号密码之类。这些配置信息直接在Configuration中定义成员变量进行存储。</li>
+<li>第二种就是Mapper配置信息，比如执行的SQL，入参，执行结果需要映射的类等等。这里通过一个HashMap去存储。key是Mapper接口的方法全路径（如：com.ums.demo.TagMapper.selectById），value是一个MappedStatement对象，该对象中包括执行的SQL，执行结果要映射的对象等等。</li>
+</ul>
+<p>总而言之，就是MyBatis的两种配置文件生成了一个Configuration对象。</p>
+<h4 id="2-2-SqlSession"><a href="#2-2-SqlSession" class="headerlink" title="2.2 SqlSession"></a>2.2 SqlSession</h4><p>SqlSession对上层提供数据库操作接口。对真正的数据库操作之前做一些预处理。如，调用前，获得要执行的SQL（也就是获得一个MappedStatement），调用结束后，如果查询的是一条记录，而实际返回多条，则需要抛出异常。</p>
+<p>这里使用到了工厂模式，所以有一个SqlSessionFactory类。这个工厂类做的事情就是实例化一个SqlSession。</p>
+<h4 id="2-3-Executor"><a href="#2-3-Executor" class="headerlink" title="2.3 Executor"></a>2.3 Executor</h4><p>Executor是真正执行SQL的地方。对应JDBC的statement.executeQuery部分。SqlSession和Executor之间的关系，我们可以理解为在某些实际项目开发中Service层和Dao层之间的关系。</p>
+<h4 id="2-4-ResultHandler"><a href="#2-4-ResultHandler" class="headerlink" title="2.4 ResultHandler"></a>2.4 ResultHandler</h4><p>ResultHandler就是将JDBC的查询结果ResultSet转换为对应的映射对象。</p>
+<h4 id="2-5-MapperProxy"><a href="#2-5-MapperProxy" class="headerlink" title="2.5 MapperProxy"></a>2.5 MapperProxy</h4><p>这是MyBatis的动态代理实现的核心，上图中并未出现，但这里需要着重说明。当我们通过getMapper去获取一个Mapper接口的实现类的时候，返回的就是一个动态代理的MapperProxy对象。当调用Mapper的某个方法时，MapperProxy的实例对象得到方法的全路径名称，这样就可以去MappedStatement中获得要执行的SQL和返回结果映射对象等一系列信息。接下来就可以进入到SqlSession中一路往下执行了。</p>
+<h3 id="3-开始实现"><a href="#3-开始实现" class="headerlink" title="3 开始实现"></a>3 开始实现</h3><p>这里我们设定一个实现目标：通过主键id查询数据库表中的一条记录。</p>
+<p>由于涉及的代码较多，限于文章篇幅，这里只贴一些较为核心的代码。整个工程的代码详见<a href="https://github.com/vectooor/mini-mybatis" target="_blank" rel="noopener">github</a>。</p>
+<p>首先，我们新建一个maven工程，引入以下依赖：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- 本次实现我们使用MySQL --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>mysql<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>mysql-connector-java<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>6.0.6<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!-- xml配置文件解析 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>dom4j<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>dom4j<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.6.1<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!-- xpath --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>jaxen<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>jaxen<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.2.0<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>其次，建立如下图的工程目录结构（这里都是参照MyBatis的目录结构，类名也基本保持一致）：</p>
+<p><img src="/images/mybatis-project.jpg" alt=""></p>
+<p>Configuration将主要配置信息读取到成员变量中，代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/** 数据库的链接信息 */</span></span><br><span class="line"><span class="keyword">private</span> String driverClassName;</span><br><span class="line"><span class="keyword">private</span> String url;</span><br><span class="line"><span class="keyword">private</span> String username;</span><br><span class="line"><span class="keyword">private</span> String password;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 用户自定义的Mapper接口对应的xml路径</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">private</span> List&lt;String&gt; mappers;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 以methodName（packageName.className.methodName）作为key，MappedStatement作为value</span></span><br><span class="line"><span class="comment"> * mybatis源码也是类似的思想，mybatis的MappedStatement存储的内容更多，我们模仿时进行简化</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">private</span> Map&lt;String, MappedStatement&gt; mappedStatements = <span class="keyword">new</span> HashMap&lt;&gt;();</span><br></pre></td></tr></table></figure>
+
+<p>动态代理部分的核心代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> Object <span class="title">invoke</span><span class="params">(Object proxy, Method method, Object[] args)</span> <span class="keyword">throws</span> Throwable </span>&#123;</span><br><span class="line">    <span class="comment">// 这里可以做一些预处理</span></span><br><span class="line">    <span class="keyword">return</span> sqlSession.selectOne(mapperInterface.getName() + <span class="string">"."</span> + method.getName(), args);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>DefaultSqlSession的代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/** 构造函数将Configuration和Executor对象传入 */</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">DefaultSqlSession</span><span class="params">(Configuration configuration, Executor executor)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.configuration = configuration;</span><br><span class="line">    <span class="keyword">this</span>.executor = executor;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> &lt;T&gt; <span class="function">T <span class="title">selectOne</span><span class="params">(String statement, Object[] args)</span> </span>&#123;</span><br><span class="line">    MappedStatement mappedStatement = configuration.getMappedStatement(statement);</span><br><span class="line">    List&lt;T&gt; list;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        list = executor.query(mappedStatement, args);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (SQLException e) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> ExecutorException(<span class="string">"invoke executor cause exception: "</span> + e.getMessage(), e);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (list.size() == <span class="number">1</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> list.get(<span class="number">0</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (list.size() &gt; <span class="number">1</span>) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> TooManyResultsException(<span class="string">"Expected one result (or null) to be returned by selectOne(), but found: "</span> + list.size());</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>BaseExecutor准备好SQL，调用statement.executeQuery()，代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> &lt;E&gt; <span class="function">List&lt;E&gt; <span class="title">query</span><span class="params">(MappedStatement statement, Object[] args)</span> <span class="keyword">throws</span> SQLException </span>&#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        LOGGER.debug(<span class="string">"sql=[&#123;&#125;]"</span>, statement.getSql());</span><br><span class="line">        PreparedStatement preparedStatement = connection.prepareStatement(statement.getSql());</span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">null</span> != args) &#123;</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; args.length; i++) &#123;</span><br><span class="line">                <span class="keyword">if</span> (args[<span class="number">0</span>] <span class="keyword">instanceof</span> String) &#123;</span><br><span class="line">                    preparedStatement.setString(i + <span class="number">1</span>, (String)args[i]);</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">if</span> (args[<span class="number">0</span>] <span class="keyword">instanceof</span> Integer) &#123;</span><br><span class="line">                    preparedStatement.setInt(i + <span class="number">1</span>, (Integer) args[i]);</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="comment">// 其他类型的参数依次类推</span></span><br><span class="line">                <span class="comment">// mybatis传入的参数有专门的类进行处理，我们这里未做任何处理，上层原样传入的参数</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        LOGGER.debug(<span class="string">"params=[&#123;&#125;]"</span>, args);</span><br><span class="line">        preparedStatement.executeQuery();</span><br><span class="line"></span><br><span class="line">        DefaultResultSetHandler resultSetHandler = <span class="keyword">new</span> DefaultResultSetHandler(statement);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> resultSetHandler.handleResultSets(preparedStatement);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (SQLException e) &#123;</span><br><span class="line">        <span class="keyword">throw</span> e;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>DefaultResultSetHandler主要是将ResultSet转换为对应的对象，其代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> &lt;E&gt; <span class="function">List&lt;E&gt; <span class="title">handleResultSets</span><span class="params">(Statement stmt)</span> <span class="keyword">throws</span> SQLException </span>&#123;</span><br><span class="line">    ResultSet resultSet = stmt.getResultSet();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">final</span> List&lt;ResultMapping&gt; columns = mappedStatement.getResultMap().getColumns();</span><br><span class="line">    List&lt;E&gt; result = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">    <span class="keyword">while</span> (resultSet.next()) &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            E entity = (E) Class.forName(mappedStatement.getResultMap().getType()).newInstance();</span><br><span class="line">            <span class="keyword">for</span> (ResultMapping item : columns) &#123;</span><br><span class="line">                Field name = entity.getClass().getDeclaredField(item.getProperty());</span><br><span class="line">                name.setAccessible(<span class="keyword">true</span>);</span><br><span class="line">                <span class="keyword">if</span> (<span class="string">"INTEGER"</span>.equals(item.getJdbcType())) &#123;</span><br><span class="line">                    name.set(entity, resultSet.getInt(item.getColumn()));</span><br><span class="line">                &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="string">"VARCHAR"</span>.equals(item.getJdbcType())) &#123;</span><br><span class="line">                    name.set(entity, resultSet.getString(item.getColumn()));</span><br><span class="line">                &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="string">"TIMESTAMP"</span>.equals(item.getJdbcType())) &#123;</span><br><span class="line">                    name.set(entity, resultSet.getDate(item.getColumn()));</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            result.add(entity);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (InstantiationException | IllegalAccessException | ClassNotFoundException | NoSuchFieldException e) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> SQLException(<span class="string">"result set handler cause exception: "</span> + e.getMessage());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>最后，我们在数据库中创建一张测试的表，建立好对应的实体类。最后的测试代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testSelectOne</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    InputStream inputStream = AppTest.class.getClassLoader().getResourceAsStream("mini-mybatis-config.xml");</span><br><span class="line">    SqlSessionFactory sqlSessionFactory = <span class="keyword">new</span> SqlSessionFactoryBuilder().build(inputStream);</span><br><span class="line"></span><br><span class="line">    SqlSession sqlSession = sqlSessionFactory.openSession();</span><br><span class="line">    TagMapper tagMapper = sqlSession.getMapper(TagMapper<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line">    Tag tag = tagMapper.selectByPrimaryKey(<span class="number">2</span>);</span><br><span class="line">    LOGGER.info(tag.toString());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>至此，我们就基本上实现了一个极简版的MyBatis。</p>
+<p>单纯的在本文中看这些配置，可能较难理解。整个工程代码地址在这里：<a href="https://github.com/vectooor/mini-mybatis" target="_blank" rel="noopener">https://github.com/vectooor/mini-mybatis</a>。由于是学习代码，如果里面有部分错的代码，自己修正即可。</p>
+<p>完。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Java/" rel="tag"># Java</a>
+              <a href="/tags/MyBatis/" rel="tag"># MyBatis</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/01/07/linux-epoll/" rel="prev" title="Linux中select、epoll的学习和理解">
+      <i class="fa fa-chevron-left"></i> Linux中select、epoll的学习和理解
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="comments"></div>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-预备知识"><span class="nav-text">1 预备知识</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-架构梳理"><span class="nav-text">2 架构梳理</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#2-1-Configuration"><span class="nav-text">2.1 Configuration</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-2-SqlSession"><span class="nav-text">2.2 SqlSession</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-3-Executor"><span class="nav-text">2.3 Executor</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-4-ResultHandler"><span class="nav-text">2.4 ResultHandler</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-5-MapperProxy"><span class="nav-text">2.5 MapperProxy</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-开始实现"><span class="nav-text">3 开始实现</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="勤恳的小码农"
+      src="/images/profile-photo.jpg">
+  <p class="site-author-name" itemprop="name">勤恳的小码农</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">6</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/vectooor" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;vectooor" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">勤恳的小码农</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  
+  <script color='0,0,255' opacity='0.5' zIndex='-1' count='99' src="/lib/canvas-nest/canvas-nest.min.js"></script>
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script>
+<script src="/js/schemes/pisces.js"></script>
+<script src="/js/next-boot.js"></script>
+
+
+
+  
+
+
+
+
+  <script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+  var GUEST = ['nick', 'mail', 'link'];
+  var guest = 'nick,mail,link';
+  guest = guest.split(',').filter(item => {
+    return GUEST.includes(item);
+  });
+  new Valine({
+    el: '#comments',
+    verify: false,
+    notify: false,
+    appId: '9a9v7zu2yyqTWSjtdBY5WHS4-gzGzoHsz',
+    appKey: 'rka4jpeukne9S0n6xra3OYua',
+    placeholder: "Just go go",
+    avatar: 'mm',
+    meta: guest,
+    pageSize: '10' || 10,
+    visitor: false,
+    lang: '' || 'zh-cn',
+    path: location.pathname,
+    recordIP: true,
+    serverURLs: ''
+  });
+}, window.Valine);
+</script>
+
+</body>
+</html>
