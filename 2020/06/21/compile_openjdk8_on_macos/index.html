@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.0.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <link rel="alternate" href="/atom.xml" title="Vectooor" type="application/atom+xml">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Microsoft YaHei:300,300italic,400,400italic,700,700italic|consolas:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('http://yoursite.com').hostname,
+    root: '/',
+    scheme: 'Gemini',
+    version: '7.5.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="已经连续下了好几天的大雨，不少地方应该涨洪水了，刚刚又看了下天气预报，接下来一个星期都是雨天，真是让人难过。周末在家无事，在家看书学习学习。最近在学习JVM，所以就先在自己的电脑上编译出一个JDK。折腾了一两天，可算成功了，这里对折腾过程中的踩的坑进行记录。">
+<meta name="keywords" content="MacOS,JVM">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MacOS下编译OpenJDK8">
+<meta property="og:url" content="http:&#x2F;&#x2F;yoursite.com&#x2F;2020&#x2F;06&#x2F;21&#x2F;compile_openjdk8_on_macos&#x2F;index.html">
+<meta property="og:site_name" content="Vectooor">
+<meta property="og:description" content="已经连续下了好几天的大雨，不少地方应该涨洪水了，刚刚又看了下天气预报，接下来一个星期都是雨天，真是让人难过。周末在家无事，在家看书学习学习。最近在学习JVM，所以就先在自己的电脑上编译出一个JDK。折腾了一两天，可算成功了，这里对折腾过程中的踩的坑进行记录。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http:&#x2F;&#x2F;yoursite.com&#x2F;images&#x2F;openjdk-1.jpg">
+<meta property="og:updated_time" content="2020-06-21T14:21:21.547Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http:&#x2F;&#x2F;yoursite.com&#x2F;images&#x2F;openjdk-1.jpg">
+
+<link rel="canonical" href="http://yoursite.com/2020/06/21/compile_openjdk8_on_macos/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>MacOS下编译OpenJDK8 | Vectooor</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Vectooor</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">talk is cheap, show me the code</p>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/06/21/compile_openjdk8_on_macos/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/profile-photo.jpg">
+      <meta itemprop="name" content="勤恳的小码农">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Vectooor">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          MacOS下编译OpenJDK8
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2020-06-21 18:05:21 / 修改时间：22:21:21" itemprop="dateCreated datePublished" datetime="2020-06-21T18:05:21+08:00">2020-06-21</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index">
+                    <span itemprop="name">技术</span>
+                  </a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">评论：</span>
+    
+    <a title="valine" href="/2020/06/21/compile_openjdk8_on_macos/#comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/06/21/compile_openjdk8_on_macos/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+              <span>4.6k</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>已经连续下了好几天的大雨，不少地方应该涨洪水了，刚刚又看了下天气预报，接下来一个星期都是雨天，真是让人难过。周末在家无事，在家看书学习学习。最近在学习JVM，所以就先在自己的电脑上编译出一个JDK。折腾了一两天，可算成功了，这里对折腾过程中的踩的坑进行记录。</p>
+<a id="more"></a>
+
+<p><strong>写在前面：在源码中，有一个详细的安装指导手册 <code>README-builds.html</code> ，编译前应仔细阅读。这份文档囊括了网络上的绝大部分资料。</strong></p>
+<h3 id="1-编译环境"><a href="#1-编译环境" class="headerlink" title="1 编译环境"></a>1 编译环境</h3><ul>
+<li>macOS版本：<code>10.13.4 (17E199)</code></li>
+<li>Xcode版本：<code>9.3.1</code></li>
+</ul>
+<blockquote>
+<p>需要注意的是：JVM核心是由C/C++实现的，所以编译的时候需要用到gcc、g++。如果安装了xcode，则gcc和g++占用了纯正的gcc和g++。这里不需要去重新安装gcc和g++，直接使用Command Line Tools自带的clang即可。</p>
+</blockquote>
+<h3 id="2-获取源代码"><a href="#2-获取源代码" class="headerlink" title="2 获取源代码"></a>2 获取源代码</h3><p>OpenJDK8的源代码获取有多种方式。本人是通过github上的镜像获取到的。具体仓库地址： <code>git@github.com:AdoptOpenJDK/openjdk-jdk8u.git</code> 。由于commit的日志特别多，clone的时候可以使用 <code>--depth</code> 指定深度。分支使用master或dev均可。执行命令获取源代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">git clone git@github.com:AdoptOpenJDK/openjdk-jdk8u.git</span><br><span class="line"># 如果不想获取过多的commit，加上--depth=1</span><br><span class="line">git clone --depth=1 git@github.com:AdoptOpenJDK/openjdk-jdk8u.git</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="3-安装依赖包"><a href="#3-安装依赖包" class="headerlink" title="3 安装依赖包"></a>3 安装依赖包</h3><p>目前必然使用到的依赖只有freetype，使用 <code>brew install freetype</code> 即可安装。其他依赖，看错误提示，缺啥就装啥。</p>
+<h3 id="4-设置环境变量"><a href="#4-设置环境变量" class="headerlink" title="4 设置环境变量"></a>4 设置环境变量</h3><p>以下这份环境变量的设置主要来源于周志明的《深入理解Java虚拟机 JVM高级特性与最佳实践》一书。网络上的那几篇文章都是把这些环境变量设置到 <code>~/.bash_profile</code> 中，这样没有必要。因为这些环境变量，绝大多数只有本次编译是使用，编译完成后基本不会再用。所以这里建议在源码的根目录下新建一个 <code>env.sh</code> 文件，开启一个终端窗口，在该窗口下执行 <code>source env.sh</code> 。当然，如果终端关闭了，需要重新进入到源码根目录下，执行source命令。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 设定语言选项，必须设置</span></span><br><span class="line">export LANG=C</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment"># 这个是过时的环境变量，可以不设置</span></span></span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment"># export ALT_BOOTDIR=/Library/Java/JavaVirtualMachines/jdk1.8.0_144.jdk/Contents/Home</span></span></span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment"># 必须安装xcode，xcode已经把gcc g++命令占用了，直接重新装gcc重新设置编译可能会失败</span></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> Mac平台，C编译器不再是GCC，是clang</span></span><br><span class="line">export CC=clang</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment"># C++编译器</span></span></span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment"># export CXX=g++-4.9</span></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 跳过clang的一些严格的语法检查，不然会将N多的警告作为Error</span></span><br><span class="line">export COMPILER_WARNINGS_FATAL=false</span><br><span class="line"><span class="meta">#</span><span class="bash"> 链接时使用的参数</span></span><br><span class="line">export LFLAGS='-Xlinker -lstdc++'</span><br><span class="line"><span class="meta">#</span><span class="bash"> 是否使用clang</span></span><br><span class="line">export USE_CLANG=true</span><br><span class="line"><span class="meta">#</span><span class="bash"> 使用64位数据模型</span></span><br><span class="line">export LP64=1</span><br><span class="line"><span class="meta">#</span><span class="bash"> 告诉编译平台是64位，不然会按32位来编译</span></span><br><span class="line">export ARCH_DATA_MODEL=64</span><br><span class="line"><span class="meta">#</span><span class="bash"> 允许自动下载依赖</span></span><br><span class="line">export ALLOW_DOWNLOADS=true</span><br><span class="line"><span class="meta">#</span><span class="bash"> 并行编译的线程数，编译时间长</span></span><br><span class="line">export HOTSPOT_BUILD_JOBS=2</span><br><span class="line"><span class="meta">#</span><span class="bash"> 是否跳过与先前版本的比较</span></span><br><span class="line">export SKIP_COMPARE_IMAGES=true</span><br><span class="line"><span class="meta">#</span><span class="bash"> 是否使用预编译头文件，加快编译速度</span></span><br><span class="line">export USE_PRECOMPILED_HEADER=true</span><br><span class="line"><span class="meta">#</span><span class="bash"> 是否使用增量编译</span></span><br><span class="line">export INCREMENTAL_BUILD=true</span><br><span class="line"><span class="meta">#</span><span class="bash"> 编译内容</span></span><br><span class="line">export BUILD_LANGTOOLS=true</span><br><span class="line">export BUILD_JAXP=true</span><br><span class="line">export BUILD_JAXWS=true</span><br><span class="line">export BUILD_CORBA=true</span><br><span class="line">export BUILD_HOTSPOT=true</span><br><span class="line">export BUILD_JDK=true</span><br><span class="line"><span class="meta">#</span><span class="bash"> 编译版本</span></span><br><span class="line">export SKIP_DEBUG_BUILD=true</span><br><span class="line">export SKIP_FASTDEBUG_BUILD=false</span><br><span class="line">export DEBUG_NAME=debug</span><br><span class="line"><span class="meta">#</span><span class="bash"> 避开javaws和浏览器Java插件之类的部分的build</span></span><br><span class="line">export BUILD_DEPLOY=false</span><br><span class="line">export BUILD_INSTALL=false</span><br><span class="line">unset JAVA_HOME</span><br><span class="line">unset CLASSPATH</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>上面两个#号开头的行是本人的注释。另关于clang和gcc，需做进一步研究。</p>
+</blockquote>
+<h3 id="5-编译源码"><a href="#5-编译源码" class="headerlink" title="5 编译源码"></a>5 编译源码</h3><p>进入到源码openjdk-jdk8u下，先执行configure。可以通过 <code>chmod +x configure</code> 使文件具有可执行权限，或者使用 <code>bash</code> 执行脚本。然后执行 <code>make</code> 。</p>
+<h4 id="5-1-configure"><a href="#5-1-configure" class="headerlink" title="5.1 configure"></a>5.1 configure</h4><p>configure执行的命令如下。这里执行freetype需要按照下面的命令，如果通过 <code>--with-freetype=$freetypeHome</code> 会一直报错（$freetypeHome是通过 <code>brew install freetype</code> 后的安装目录，一般在 <code>/usr/local/Cellar/freetype/version</code> 下）。分别指定include和lib目录就没有问题了。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bash configure --enable-debug --with-target-bits=64 --with-freetype-include=/usr/local/include/freetype2 --with-freetype-lib=/usr/local/lib/</span><br></pre></td></tr></table></figure>
+
+<p>这里可能会出现下图的错误：</p>
+<p><img src="/images/openjdk-1.jpg" alt=""></p>
+<p>这是就是因为此gcc非彼gcc的原因。解决方案，找到 <code>common/autoconf/generated-configure.sh</code> ，将一下代码注释掉：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">    if test $? -ne 0; then</span><br><span class="line">      &#123; $as_echo "$as_me:$&#123;as_lineno-$LINENO&#125;: The $COMPILER_NAME compiler (located as $COMPILER) does not seem to be the required $TOOLCHAIN_TYPE compiler." &gt;&amp;5</span><br><span class="line"><span class="meta">$</span><span class="bash">as_echo <span class="string">"<span class="variable">$as_me</span>: The <span class="variable">$COMPILER_NAME</span> compiler (located as <span class="variable">$COMPILER</span>) does not seem to be the required <span class="variable">$TOOLCHAIN_TYPE</span> compiler."</span> &gt;&amp;6;&#125;</span></span><br><span class="line">      &#123; $as_echo "$as_me:$&#123;as_lineno-$LINENO&#125;: The result from running with --version was: \"$COMPILER_VERSION\"" &gt;&amp;5</span><br><span class="line"><span class="meta">$</span><span class="bash">as_echo <span class="string">"<span class="variable">$as_me</span>: The result from running with --version was: \"<span class="variable">$COMPILER_VERSION</span>\""</span> &gt;&amp;6;&#125;</span></span><br><span class="line">      as_fn_error $? "A $TOOLCHAIN_TYPE compiler is required. Try setting --with-tools-dir." "$LINENO" 5</span><br><span class="line">    fi</span><br></pre></td></tr></table></figure>
+
+<p>全局搜索，应该有很多处需要注释，我搜出来有十个地方。无脑注释就行。注释完以后在按照前面的configure命令执行，最后得到以下结果意味着成了。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">Configuration summary:</span><br><span class="line">* Debug level:    fastdebug</span><br><span class="line">* JDK variant:    normal</span><br><span class="line">* JVM variants:   server</span><br><span class="line">* OpenJDK target: OS: macosx, CPU architecture: x86, address length: 64</span><br><span class="line"></span><br><span class="line">Tools summary:</span><br><span class="line">* Boot JDK:       java version &quot;1.8.0_144&quot; Java(TM) SE Runtime Environment (build 1.8.0_144-b01) Java HotSpot(TM) 64-Bit Server VM (build 25.144-b01, mixed mode)  (at /Library/Java/JavaVirtualMachines/jdk1.8.0_144.jdk/Contents/Home)</span><br><span class="line">* Toolchain:      gcc (GNU Compiler Collection)</span><br><span class="line">* C Compiler:     Version 4.9.4 (at /usr/local/bin/gcc-4.9)</span><br><span class="line">* C++ Compiler:   Version 4.9.4 (at /usr/local/bin/g++-4.9)</span><br><span class="line"></span><br><span class="line">Build performance summary:</span><br><span class="line">* Cores to use:   2</span><br><span class="line">* Memory limit:   8192 MB</span><br></pre></td></tr></table></figure>
+
+<h4 id="5-2-make"><a href="#5-2-make" class="headerlink" title="5.2 make"></a>5.2 make</h4><p>上一步操作执行完没问题后，直接输入make执行即可。如果不出意外，应该会遇到一个关于 <code>-std=gnu++98</code>的坑，这里直接在文件 <code>common/autoconf/generated-configure.sh</code> 中找到行  <code>CXXSTD_CXXFLAG=&quot;-std=gnu++98&quot;</code> 注释掉即可。然后重新configure，再make。不出意外，最后得到如下结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">----- Build times -------</span><br><span class="line">Start 2020-06-21 16:38:55</span><br><span class="line">End   2020-06-21 16:58:41</span><br><span class="line">00:00:30 corba</span><br><span class="line">00:13:27 hotspot</span><br><span class="line">00:00:17 jaxp</span><br><span class="line">00:00:27 jaxws</span><br><span class="line">00:04:22 jdk</span><br><span class="line">00:00:42 langtools</span><br><span class="line">00:19:46 TOTAL</span><br><span class="line">-------------------------</span><br><span class="line">Finished building OpenJDK for target &apos;default&apos;</span><br></pre></td></tr></table></figure>
+
+<p>执行下命令：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> build/macosx-x86_64-normal-server-fastdebug/jdk/bin &amp;&amp; ./java -version</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 得到如下结果</span></span><br><span class="line">openjdk version "1.8.0-internal-fastdebug"</span><br><span class="line">OpenJDK Runtime Environment (build 1.8.0-internal-fastdebug-vector_2020_06_21_16_38-b00)</span><br><span class="line">OpenJDK 64-Bit Server VM (build 25.71-b00-fastdebug, mixed mode)</span><br></pre></td></tr></table></figure>
+
+<p>大功告成。以上。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/MacOS/" rel="tag"># MacOS</a>
+              <a href="/tags/JVM/" rel="tag"># JVM</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/03/08/mini-mybatis/" rel="prev" title="从零开始手写一个MyBatis框架">
+      <i class="fa fa-chevron-left"></i> 从零开始手写一个MyBatis框架
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="comments"></div>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-编译环境"><span class="nav-text">1 编译环境</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-获取源代码"><span class="nav-text">2 获取源代码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-安装依赖包"><span class="nav-text">3 安装依赖包</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-设置环境变量"><span class="nav-text">4 设置环境变量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-编译源码"><span class="nav-text">5 编译源码</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#5-1-configure"><span class="nav-text">5.1 configure</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-2-make"><span class="nav-text">5.2 make</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="勤恳的小码农"
+      src="/images/profile-photo.jpg">
+  <p class="site-author-name" itemprop="name">勤恳的小码农</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">7</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/vectooor" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;vectooor" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">勤恳的小码农</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  
+  <script color='0,0,255' opacity='0.5' zIndex='-1' count='99' src="/lib/canvas-nest/canvas-nest.min.js"></script>
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script>
+<script src="/js/schemes/pisces.js"></script>
+<script src="/js/next-boot.js"></script>
+
+
+
+  
+
+
+
+
+  <script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+  var GUEST = ['nick', 'mail', 'link'];
+  var guest = 'nick,mail,link';
+  guest = guest.split(',').filter(item => {
+    return GUEST.includes(item);
+  });
+  new Valine({
+    el: '#comments',
+    verify: false,
+    notify: false,
+    appId: '9a9v7zu2yyqTWSjtdBY5WHS4-gzGzoHsz',
+    appKey: 'rka4jpeukne9S0n6xra3OYua',
+    placeholder: "Just go go",
+    avatar: 'mm',
+    meta: guest,
+    pageSize: '10' || 10,
+    visitor: false,
+    lang: '' || 'zh-cn',
+    path: location.pathname,
+    recordIP: true,
+    serverURLs: ''
+  });
+}, window.Valine);
+</script>
+
+</body>
+</html>
