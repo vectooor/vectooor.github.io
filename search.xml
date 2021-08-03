@@ -1,6 +1,54 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>ThreadLocal内存泄露问题</title>
+    <url>/2021/08/02/threadlocal/</url>
+    <content><![CDATA[<p>面试过程中，问的较多的问题就是关于ThreadLocal，之前了解其原理，但是会问到内存泄露相关知识点，之前这块没做了解，现在对其原理和引发内存泄露的场景及其原因进行学习并记录下来。</p>
+<a id="more"></a>
+<h3 id="实现原理"><a href="#实现原理" class="headerlink" title="实现原理"></a>实现原理</h3><p>ThreadLocal主要用于解决线程安全问题。实现原理是每个线程（Thread实例）都有一个 <code>ThreadLocal.ThreadLocalMap</code> 类型的成员变量。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 这是Thread类里面定义的成员变量</span></span><br><span class="line"><span class="comment">/* ThreadLocal values pertaining to this thread. This map is maintained</span></span><br><span class="line"><span class="comment"> * by the ThreadLocal class. */</span></span><br><span class="line">ThreadLocal.ThreadLocalMap threadLocals = <span class="keyword">null</span>;</span><br></pre></td></tr></table></figure>
+<p>通过类命名，我们可以知道，这是一个Map，key-value结构的数据。这个Map的数据载体是一个Entry数组。每个Entry载体的key是ThreadLocal对象本身，value就是我们要保证线程安全的数据。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// ThreadLocal类中对Entry的定义</span></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * The entries in this hash map extend WeakReference, using</span></span><br><span class="line"><span class="comment"> * its main ref field as the key (which is always a</span></span><br><span class="line"><span class="comment"> * ThreadLocal object).  Note that null keys (i.e. entry.get()</span></span><br><span class="line"><span class="comment"> * == null) mean that the key is no longer referenced, so the</span></span><br><span class="line"><span class="comment"> * entry can be expunged from table.  Such entries are referred to</span></span><br><span class="line"><span class="comment"> * as "stale entries" in the code that follows.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Entry</span> <span class="keyword">extends</span> <span class="title">WeakReference</span>&lt;<span class="title">ThreadLocal</span>&lt;?&gt;&gt; </span>&#123;</span><br><span class="line">    <span class="comment">/** The value associated with this ThreadLocal. */</span></span><br><span class="line">    Object value;</span><br><span class="line"></span><br><span class="line">    Entry(ThreadLocal&lt;?&gt; k, Object v) &#123;</span><br><span class="line">        <span class="keyword">super</span>(k);</span><br><span class="line">        value = v;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>ThreadLocal.set()</code> 逻辑如下（详见注释）：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">set</span><span class="params">(T value)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 获取当前线程实例</span></span><br><span class="line">    Thread t = Thread.currentThread();</span><br><span class="line">    <span class="comment">// 这里的getMap返回的就是t.threadLocals(也就是Thread中定义的threadLocals）</span></span><br><span class="line">    ThreadLocalMap map = getMap(t);</span><br><span class="line">    <span class="keyword">if</span> (map != <span class="keyword">null</span>)</span><br><span class="line">        map.set(<span class="keyword">this</span>, value);</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        <span class="comment">// 为空则new一个ThreadLocalMap，并将值put进去</span></span><br><span class="line">        createMap(t, value);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>对应的 <code>ThreadLocal.get()</code> 这里也贴一下：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> T <span class="title">get</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    Thread t = Thread.currentThread();</span><br><span class="line">    ThreadLocalMap map = getMap(t);</span><br><span class="line">    <span class="keyword">if</span> (map != <span class="keyword">null</span>) &#123;</span><br><span class="line">        ThreadLocalMap.Entry e = map.getEntry(<span class="keyword">this</span>);</span><br><span class="line">        <span class="keyword">if</span> (e != <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="meta">@SuppressWarnings</span>(<span class="string">"unchecked"</span>)</span><br><span class="line">            T result = (T)e.value;</span><br><span class="line">            <span class="keyword">return</span> result;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> setInitialValue();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>整个过程看起来有点绕，简单点理解，其实就是定义一个全局变量Map，key是当前线程名称，在加上一个附加的关键字（如原ThreadLocal的变量名），value与之前的一样。ThreadLocal做的事情，将这个大的Map按照线程进行了拆分，n个线程就n个子Map。（这是个人的理解）</p>
+<h3 id="内存泄露"><a href="#内存泄露" class="headerlink" title="内存泄露"></a>内存泄露</h3><p>首先，需要了解什么是内存泄露。内存泄露值得是：程序在申请内存后，该部分内存无法释放，GC也无法回收。一次内存泄露危害可以忽略，但是堆积过多后，就会导致系统崩溃。</p>
+<p>在阿里巴巴Java开发手册上，关于ThreadLocal有一项强制规定：</p>
+<blockquote>
+<p>【强制】必须回收自定义的ThreadLocal变量，尤其在线程池场景下，线程经常会被复用，如果不清理自定义的ThreadLocal变量，可能会影响后续业务逻辑和造成内存泄露等问题。尽量在代理中使用try-finally块进行回收。</p>
+</blockquote>
+<p>但是并没有给出为什么会导致内存泄露。根据上面的实现原理，可以画出一下这张图。下面结合下图进行分析。</p>
+<img src="/images/ThreadLocal.png" style="zoom:100%;" />
+
+<p>线程在运行的时候，当前线程有一个强引用指向堆上的Thread实例，同样，也有一个ThreadLocal的强引用指向ThreadLocal实例。上图中，实线箭头的指向都是强引用，而虚线箭头是弱应用。</p>
+<p>正常情况下，如果线程正常结束，那么两个强引用都会消失，根据可达性分析算法，上图堆中的数据都会被回收。</p>
+<p>如果线程未结束，只是将 <code>ThreadLocalRef=null</code> ，这仅仅是ThreadLocal实例本身被回收，那么Map的key就会变成null，但是value并不会被回收，因为ThreadRef依然在强引用Thread实例。</p>
+<p>如果是线程池，那就等同于线程未结束的情况，这样会导致Value一直存在，GC无法回收该部分内存。从而导致内存泄露。</p>
+<blockquote>
+<p>关于强引用弱引用，简单的来说，就是，如果堆上的某个实例，已经没有强引用指向它，那么它就会在下一次GC时被回收。而有强引用的实例不会被回收。如上图，假设指向ThreadLocal的强引用没有了，那么指向它的弱引用并不能阻止GC回收它。</p>
+</blockquote>
+<h3 id="使用规范"><a href="#使用规范" class="headerlink" title="使用规范"></a>使用规范</h3><p>1、ThreadLocal一般使用static进行修饰，如：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> ThreadLocal&lt;Long&gt; START_TIME = <span class="keyword">new</span> ThreadLocal();</span><br></pre></td></tr></table></figure>
+
+<p>2、必须对ThreadLocal进行回收，且在try-finally中进行：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">START_TIME.set(System.currentTimeMillis());</span><br><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="keyword">long</span> x = START_TIME.get();</span><br><span class="line">    <span class="comment">// use x do something</span></span><br><span class="line">&#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">    START_TIME.remove();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>以上。</p>
+]]></content>
+      <categories>
+        <category>技术</category>
+      </categories>
+      <tags>
+        <tag>Java</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>MacOS下编译OpenJDK8</title>
     <url>/2020/06/21/compile_openjdk8_on_macos/</url>
     <content><![CDATA[<p>已经连续下了好几天的大雨，不少地方应该涨洪水了，刚刚又看了下天气预报，接下来一个星期都是雨天，真是让人难过。周末在家无事，在家看书学习学习。最近在学习JVM，所以就先在自己的电脑上编译出一个JDK。折腾了一两天，可算成功了，这里对折腾过程中的踩的坑进行记录。</p>
